@@ -1,0 +1,6 @@
+flask
+psycopg2-binary
+flask-cors
+mediapipe==0.10.11
+opencv-python-headless
+numpy
