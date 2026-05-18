@@ -29,12 +29,37 @@ CREATE TABLE IF NOT EXISTS preferencias_usuario (
     cronotipo VARCHAR(50) 
 );
 
+-- 3.1 Perfil / Onboarding (primer ingreso)
+CREATE TABLE IF NOT EXISTS perfil_usuario (
+    id_perfil SERIAL PRIMARY KEY,
+    id_usuario INT UNIQUE REFERENCES usuarios(id_usuario) ON DELETE CASCADE,
+    tipo_trabajo VARCHAR(120),
+    area VARCHAR(120),
+    turno VARCHAR(40), -- diurno/nocturno/rotativo
+    hora_inicio TIME,
+    hora_fin TIME,
+    dias_trabajo VARCHAR(80), -- ej: "Lun,Mar,Mie,Jue,Vie"
+    horas_sueno_promedio NUMERIC(4,1) CHECK (horas_sueno_promedio BETWEEN 0 AND 24),
+    creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- 4. Crear tabla de Logs de Energía
 CREATE TABLE IF NOT EXISTS logs_energia (
     id_log SERIAL PRIMARY KEY,
     id_usuario INT REFERENCES usuarios(id_usuario) ON DELETE CASCADE,
     nivel_fatiga_detectado INT CHECK (nivel_fatiga_detectado BETWEEN 0 AND 10),
     timestamp_log TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 4.1 Logs detallados de fatiga (cámara)
+CREATE TABLE IF NOT EXISTS registros_fatiga (
+    id_registro SERIAL PRIMARY KEY,
+    id_usuario INT REFERENCES usuarios(id_usuario) ON DELETE CASCADE,
+    estado VARCHAR(120) NOT NULL,
+    ear NUMERIC(6,3),
+    nivel INT CHECK (nivel BETWEEN 0 AND 10),
+    creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 5. Crear tabla de Tareas
@@ -63,6 +88,10 @@ INSERT INTO preferencias_usuario (id_usuario, genero_musical, cronotipo) VALUES
 (1, 'Rock / Indie', 'Vespertino'),
 (2, 'Lo-Fi / Jazz', 'Matutino')
 ON CONFLICT DO NOTHING;
+
+INSERT INTO perfil_usuario (id_usuario, tipo_trabajo, area, turno, hora_inicio, hora_fin, dias_trabajo, horas_sueno_promedio) VALUES
+(1, 'Operador', 'Seguridad', 'Diurno', '08:00', '17:00', 'Lun,Mar,Mie,Jue,Vie', 7.0)
+ON CONFLICT (id_usuario) DO NOTHING;
 
 INSERT INTO tareas (id_usuario, titulo, estado, prioridad) VALUES 
 (1, 'Inspección de Perímetro A1', 'Pendiente', 'Alta'),
